@@ -1,0 +1,53 @@
+train:
+  # Total number of optimizer steps (updates). Does NOT count micro-steps from gradient accumulation.
+  total_steps: 10000
+
+  # Number of warmup steps for the learning rate schedule.
+  # Set to a small fraction of total_steps (e.g. 0.5–5%). Can be 0 to disable warmup.
+  warmup_steps: 200
+
+  # Micro-batch size per GPU before gradient accumulation.
+  # Effective batch size ≈ micro_batch * grad_accum * num_gpus.
+  effective_bsz_micro: 1
+
+  # How often (in optimizer steps) to log training metrics to metrics.jsonl.
+  log_every: 20
+
+  # How often (in optimizer steps) to run validation.
+  # Set large (e.g. total_steps) to validate only at the end.
+  val_every: 200
+
+  # How often (in optimizer steps) to save checkpoints.
+  ckpt_every: 500
+
+  # Do not save checkpoints until after this many optimizer steps.
+  # Set to 0 to start checkpointing immediately.
+  ckpt_after_steps: 4000
+
+  # Root directory for this run’s outputs (checkpoints, logs, cfg, etc.).
+  run_dir: "path/to/outputs"
+
+  # Resume training from a previous run.
+  # Options:
+  #   - null                     → start fresh
+  #   - "path/to/run/checkpoints" → directory containing last-unet-lora.safetensors + state.pt
+  #   - "path/to/file.safetensors" → specific LoRA file (state.pt loaded from same dir if present)
+  resume: null
+
+  # Maximum number of validation batches per validation run.
+  # Set to null to iterate over the full validation loader.
+  val_max_batches: null
+
+
+optim:
+  # AdamW β parameters: (β1, β2). Usually left at (0.9, 0.999).
+  betas: [0.9, 0.999]
+
+  # AdamW epsilon for numerical stability. Usually 1e-8 or 1e-9.
+  eps: 1.0e-8
+
+
+lora:
+  # Base learning rate for UNet LoRA parameters.
+  # If text encoder LoRA is enabled, its LR is lora.lr * text_encoder_lora.lr_scale. 
+  lr: 1.0e-4

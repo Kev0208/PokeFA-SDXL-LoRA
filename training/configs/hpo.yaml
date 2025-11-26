@@ -1,0 +1,61 @@
+hpo:
+  # Number of Optuna trials to run in this study.
+  n_trials: 20
+
+  # Total training steps per trial (optimizer updates, not micro-steps).
+  # Typical range: 300–2000 depending on dataset/compute.
+  total_steps: 500
+
+  # Random seeds used for evaluation sampling (each prompt × each seed).
+  # More seeds → more stable metrics but slower eval.
+  seeds: [0, 1, 2, 3]
+
+  # Which model stage for tuning
+  # Options:
+  #   - "base": LoRA on the main diffusion UNet (+ optional text-encoder LoRA rank search).
+  #   - "refiner": LoRA on a second/refiner UNet (UNet LoRA only).
+  # Model.yaml should define a compatible "stage" as well.
+  stage: "base"
+
+  # Whether to search text-encoder LoRA rank when stage == "base".
+  # Only has effect if `text_encoder_lora.enable: true` in model.yaml.
+  search_te_lora: true
+
+  # Inference/evaluation settings used for all trials.
+  # These are fixed during HPO so only training hyperparameters change.
+  eval:
+    # Number of diffusion sampling steps at evaluation time.
+    steps: 30
+
+    # Classifier-free guidance scale used during evaluation.
+    # Typical range for text-to-image: ~3.0–12.0.
+    cfg: 6.5
+
+    # Evaluation image height in pixels.
+    height: 1024
+
+    # Evaluation image width in pixels.
+    width: 1024
+
+    # Negative prompt applied to every evaluation image.
+    # Used to discourage unwanted artifacts; set to an empty string to disable.
+    negative_prompt: "text, watermark, logo, signature, grain, canvas texture, artifacts, blurry"
+
+    # Dtype used for the evaluation pipeline ("bf16" or "fp16").
+    pipe_dtype: "bf16"
+
+  # Settings for CLIP-based adherence proxy.
+  clip:
+    # Local path or model identifier for CLIP-ViT-H-14 used to score text-image similarity.
+    model_path: "/path/to/CLIP-ViT-H-14"
+
+  # Settings for CLIP-based aesthetic proxy.
+  aesthetic:
+    # Local path or model identifier for clip-vit-large-patch14 used for aesthetic scoring.
+    clip_path: "/path/to/clip-vit-large-patch14"
+
+    # Local path to the trained aesthetic head LAION-aesthetic-predictor-V2/sac+logos+ava1-l14-linearMSE.pth
+    head_path: "/path/to/LAION-aesthetic-predictor-V2/sac+logos+ava1-l14-linearMSE.pth"
+
+  # Random seed for the HPO sampler itself (Optuna).
+  seed: 42

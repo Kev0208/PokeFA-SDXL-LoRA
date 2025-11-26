@@ -1,0 +1,29 @@
+# Python 3.10
+diffusers==0.35.2
+transformers==4.57.1
+accelerate==1.11.0
+safetensors==0.5.3
+huggingface_hub>=0.24.0
+tokenizers==0.22.1
+einops>=0.7.0
+peft==0.17.1
+webdataset==1.0.2
+Pillow==11.3.0
+pyyaml>=6.0.1
+tqdm>=4.66.0
+typing_extensions>=4.5
+optuna>=3.0.0
+regex
+
+# -------------------------------------------------------------------
+# To submit SageMaker training jobs the AWS SDK + CLI need to be
+# installed in that local environment. 
+#
+# sagemaker>=2.224.0
+# boto3>=1.34.0
+# awscli>=2.0.0
+#
+# pip install "sagemaker>=2.224.0" "boto3>=1.34.0" "awscli>=2.0.0"
+#
+# These are NOT required inside the SageMaker training container. 
+# -------------------------------------------------------------------

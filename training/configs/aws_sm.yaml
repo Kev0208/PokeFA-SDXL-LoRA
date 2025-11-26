@@ -1,0 +1,57 @@
+# SageMaker job configuration (used by aws/submit_sm_job.py)
+sagemaker:
+  # AWS region for the SageMaker job (e.g. "us-east-1").
+  region: "us-east-1"
+
+  # IAM role ARN with SageMaker permissions.
+  role_arn: "arn:aws:iam::123456789012:role/YourSageMakerExecutionRole"
+
+  # Instance settings: see SageMaker docs for available types.
+  instance_type: "ml.g5.12xlarge"
+  instance_count: 1
+
+  # PyTorch DLC version and Python version.
+  framework_version: "2.2"
+  py_version: "py310"
+
+  # S3 locations for code and outputs.
+  # output_path: where final model artifacts & output.tar.gz are stored.
+  # code_location: where SageMaker uploads your source archive.
+  output_path: "s3://your-bucket/sdxl-lora/output"
+  code_location: "s3://your-bucket/sdxl-lora/code"
+
+  # Base job name prefix.
+  base_job_name: "pokefa-sdxl-lora"
+
+  # EBS volume size (GiB) attached to /opt/ml.
+  volume_size: 200
+
+  # Maximum runtime in seconds.
+  max_run: 259200  # 72 hours
+
+  # Which pipeline to run inside the container.
+  # Options:
+  #   - "train": full training run using training/scripts/train.py
+  #   - "hpo":   hyperparameter search using training/scripts/hpo.py
+  mode: "train"
+
+# Runtime configuration (used by aws/sm_entry.py)
+runtime:
+  # S3 locations for model and data.
+  # These must exist before you launch the job.
+  s3_model_base: "s3://your-bucket/model/sdxl_base/"
+  s3_species_csv: "s3://your-bucket/webdataset/manifests/train_species.csv"
+  s3_train_prefix: "s3://your-bucket/webdataset/data/train/"
+  s3_val_prefix: "s3://your-bucket/webdataset/data/val/"
+
+  # Local WebDataset shard patterns under /opt/ml/input/data/{train,val}.
+  # These are plugged into dataset.wds.* overrides for full training.
+  train_shard_pattern: "train-{00000..00015}.tar"
+  val_shard_pattern: "val-{00000..00000}.tar"
+
+  # Config filenames relative to the training/ directory.
+  # These are consumed by training/scripts/train.py and training/scripts/hpo.py.
+  dataset_config: "configs/dataset.yaml"
+  model_config:   "configs/model.yaml"
+  train_config:   "configs/train.yaml"
+  hpo_config:     "configs/hpo.yaml"

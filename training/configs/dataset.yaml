@@ -1,0 +1,97 @@
+dataset:
+  wds:
+    train_urls: "path/to/webdataset/train/train-{00000..00015}.tar"
+    val_urls: "path/to/webdataset/val/val-{00000..00000}.tar"
+
+    # Semicolon-separated list of possible image extensions inside each sample.
+    image_key: "jpg;png;webp"
+
+    # Extension (no dot) for caption text files in each sample.
+    caption_key: "txt"
+
+    # Extension (no dot) for JSON metadata files in each sample.
+    meta_key: "json"
+
+    # Buffer size for per-sample shuffling.
+    # Larger → better mixing across shards, but higher CPU/RAM usage.
+    shuffle_samples: 8192
+
+    # If true → ResampledShards (infinite stream, shard sampling with replacement).
+    # If false → SimpleShardList (finite epoch over all shards).
+    resample_shards: true
+
+  loader:
+    # Per-process batch size 
+    batch_size: 32
+
+    # Number of worker processes for WebLoader / DataLoader.
+    # 0 = single-process loading; >0 = parallel workers.
+    num_workers: 4
+
+    # Pin CPU memory for faster host→GPU transfer (usually true for training).
+    pin_memory: true
+
+    # Number of batches each worker prefetches ahead of time.
+    # Effective in-flight batch count ≈ num_workers * prefetch_factor.
+    prefetch_factor: 2
+
+    # Keep workers alive across epochs; reduces startup overhead.
+    persistent_workers: true
+
+    # Whether the training loop should drop the last partial batch.
+    # Useful in DDP to avoid uneven batch sizes across ranks.
+    drop_last: true
+
+  transform:
+    # Target spatial resolution (pixels). Images are resized/cropped to size×size.
+    size: 1024
+
+    # Cropping policy:
+    #   "random_ar_crop" → AR-aware, long-side-only jitter (good for base training).
+    #   "center_crop"    → deterministic center crop (good for refiner / eval).
+    policy: "random_ar_crop"
+
+    # If true, validation uses deterministic crops (step=-1) even with random policies.
+    # If false, validation can also be jittered (uses current step).
+    deterministic_val: true
+
+    # Image normalization mode:
+    #   "sdxl" → map [0,1] to [-1,1] (SDXL VAE expected range).
+    #   any other string → leave tensor in [0,1].
+    normalize: "sdxl"
+
+  sampler:
+    # Sampling mode:
+    #   "species_accept" → enable species-aware acceptance sampling.
+    #   anything else / omit → no special sampling, use raw WebDataset distribution.
+    mode: "species_accept"
+
+    # CSV with columns like {pokemon,count,fraction}; defines q(species).
+    species_csv: "path/to/manifests/train_species.csv"
+
+    # Metadata key in JSON to read species from (list or comma-separated string).
+    species_field: "species_list"
+
+    # How to choose a single species when multiple are present:
+    #   "first"  → first entry in list / comma-separated string.
+    #   "random" → random entry from the list.
+    choose_strategy: "random"
+
+  # Step-based schedule for λ_t in p_t(s) = (1-λ_t)·U + λ_t·q(s).
+  # Steps are optimizer updates (global step), not micro-batches.
+  schedule:
+    lambda:
+      # Schedule type:
+      #   "linear" → linear interpolation from start→end over `steps`.
+      #   "cosine" → cosine ramp from start→end over `steps`.
+      type: "linear"
+
+      # Mixture coefficient at step=0: lower = more uniform; higher = closer to q(s).
+      start: 0.2
+
+      # Mixture coefficient after `steps` (clamped): 1.0 = fully follow q(s).
+      end: 0.95
+
+      # Number of optimizer steps over which to apply the schedule.
+      steps: 6000
+

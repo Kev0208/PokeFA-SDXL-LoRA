@@ -1,0 +1,16 @@
+torch
+torchvision
+diffusers>=0.30.0
+transformers>=4.40.0
+accelerate>=0.28.0
+safetensors>=0.4.3
+huggingface_hub>=0.24.0
+tokenizers>=0.15.0
+einops>=0.7.0
+webdataset>=0.2
+Pillow>=10.0
+pyyaml>=6.0.1
+numpy>=1.24
+tqdm>=4.66.0
+typing_extensions>=4.5
+optuna>=3.0.0

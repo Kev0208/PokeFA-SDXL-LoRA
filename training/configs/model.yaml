@@ -1,0 +1,153 @@
+model:
+  # ===================== Common (base + refiner) =====================
+
+  # Path containing SDXL components:
+  #   vae/, scheduler/, text_encoder/, text_encoder_2/, tokenizer/, tokenizer_2/
+  # e.g. a local SDXL base or refiner snapshot on disk.
+  base_path: "/path/to/sdxl-base-or-refiner-root"
+
+  # Which stage to assemble.
+  # Options: ["base", "refiner"]
+  stage: "base"
+
+
+  # --------------------- Dtypes / devices ----------------------------
+
+  # UNet weights/compute dtype.
+  # Options: ["bf16", "fp16", "fp32"]
+  unet_dtype: "bf16"
+
+  # VAE weights dtype (usually keep "fp32" for stability).
+  # Options: ["bf16", "fp16", "fp32"]
+  vae_dtype: "fp32"
+
+  # Text encoder (TE1/TE2) weights dtype label passed to build_text_stack.
+  # Options: ["fp32", "bf16", "fp16"]
+  te_dtype: "bf16"
+
+  # Device for text encoders.
+  # Options: ["cpu", "cuda", "gpu", "auto", "same", "cuda:0", ...]
+  text_encoders_device: "cuda"
+
+  # Final text embedding dtype used by the UNet.
+  # "match_unet" casts to UNet dtype; others force a specific dtype.
+  # Options: ["match_unet", "fp32", "bf16", "fp16"]
+  text_out_dtype: "match_unet"
+
+
+  # --------------------- Diffusion objective -------------------------
+
+  # Training target type for the noise scheduler.
+  # Must match the underlying scheduler config.
+  # Options: ["epsilon", "v_prediction"]
+  prediction_type: "epsilon"
+
+
+  # --------------------- Memory / performance ------------------------
+
+  # Enable UNet gradient checkpointing to save VRAM (slower but lower memory).
+  # Options: [true, false]
+  enable_grad_checkpointing: true
+
+  # Attention backend to install on the UNet.
+  # "auto" tries fused -> sdpa -> xformers in that order.
+  # Options: ["auto", "fused", "sdpa", "xformers"]
+  attention_impl: "sdpa"
+
+
+  # --------------------- CFG-style cond dropout ----------------------
+
+  # Probability to replace the prompt with "" at training time (single-branch CFG).
+  # 0.0 = no unconditional branch; ~0.1–0.2 is typical.
+  cond_dropout_prob: 0.10
+
+
+  # ===================== Base-only settings ==========================
+
+  # Gamma for Min-SNR loss reweighting in base training.
+  # >0 enables Min-SNR; set to 0 or remove if you do not use Min-SNR.
+  min_snr_gamma: 5.0
+
+
+  # ===================== Refiner-only settings =======================
+
+  # Path to refiner UNet (used only when stage == "refiner").
+  # Can be:
+  #   - a folder that *is* the UNet, or
+  #   - a repo root containing an "unet/" subfolder.
+  refiner_unet_path: "/path/to/refiner-unet"
+
+  # Optional PEFT LoRA directory for TE2 from base training.
+  # If non-empty: merged into TE2 and then all text encoders are frozen in refiner.
+  # Leave "" to skip TE2 merging.
+  te2_peft_dir: ""
+
+  # Timestep band for refiner training (used by your train loop, not assembly).
+  # [t_min, t_max] in scheduler timestep indices, typically a low-noise band near x0.
+  refiner_timestep_band: [0, 200]
+  
+
+# ========================= UNet LoRA config ===========================
+
+lora:
+  # Enable LoRA on the UNet.
+  # Options: [true, false]
+  enable: true
+
+  # Logical target; currently only "unet" is used.
+  target: "unet"
+
+  # LoRA rank r (capacity). Larger = more capacity and more VRAM.
+  rank: 64
+
+  # LoRA alpha. Common choice is alpha == rank for effective scale ≈ 1.
+  alpha: 64
+
+  # LoRA dropout applied inside attention modules.
+  # Range: [0.0, 1.0]
+  dropout: 0.0
+
+  # Name for this UNet LoRA adapter (for multi-adapter setups).
+  adapter_name: "default"
+
+  # UNet submodules to wrap with LoRA (attention projections).
+  # Default pattern for SDXL attention blocks.
+  target_modules: ["to_q", "to_k", "to_v", "to_out.0"]
+
+  # Internal/master dtype for LoRA weights and optimizer state.
+  # Typically "fp32".
+  # Options: ["fp32", "bf16", "fp16"]
+  master_dtype: "fp32"
+
+
+# ==================== Text encoder LoRA config ========================
+
+text_encoder_lora:
+  # Enable LoRA on text encoders (TE1 and TE2) during base stage.
+  # Ignored when stage == "refiner" (text encoders are frozen there).
+  # Options: [true, false]
+  enable: true
+
+  # LoRA rank for text encoders.
+  rank: 16
+
+  # LoRA alpha for text encoders; often alpha == rank.
+  alpha: 16
+
+  # LoRA dropout for text encoder attention modules.
+  # Range: [0.0, 1.0]
+  dropout: 0.0
+
+  # Adapter name used for both TE1 and TE2.
+  adapter_name: "te"
+
+  # Text encoder submodules to wrap with LoRA (attention projections).
+  target_modules: ["q_proj", "k_proj", "v_proj", "out_proj"]
+
+  # Internal/master dtype for TE LoRA weights and optimizer state.
+  # Options: ["fp32", "bf16", "fp16"]
+  master_dtype: "fp32"
+
+  # Scalar to multiply the base learning rate for text encoder LoRA params
+  # Effective TE LR = lora.lr * lr_scale.
+  lr_scale: 0.3
