@@ -85,20 +85,20 @@ Download `stabilityai/stable-diffusion-xl-base-1.0` to `/path/to/sdxl-base`. Ens
 
 The scheduler shipped there is a EulerDiscreteScheduler (intended for inference). For training, you want a DDPMScheduler. Edit `/path/to/sdxl-base/scheduler/scheduler_config.json` to:
 
-    ```json
-    {
-      "_class_name": "DDPMScheduler",
-      "_diffusers_version": "0.35.2",
-      "beta_start": 0.00085,
-      "beta_end": 0.012,
-      "beta_schedule": "scaled_linear",
-      "num_train_timesteps": 1000,
-      "prediction_type": "epsilon",
-      "clip_sample": false,
-      "sample_max_value": 1.0,
-      "steps_offset": 1
-    }
-    ```
+```json
+{
+    "_class_name": "DDPMScheduler",
+    "_diffusers_version": "0.35.2",
+    "beta_start": 0.00085,
+    "beta_end": 0.012,
+    "beta_schedule": "scaled_linear",
+    "num_train_timesteps": 1000,
+    "prediction_type": "epsilon",
+    "clip_sample": false,
+    "sample_max_value": 1.0,
+    "steps_offset": 1
+}
+```
 
 ### Refiner
 
@@ -138,22 +138,22 @@ How the raw data was cleaned and converted to WebDataset is documented in:
 
 Training expects a WebDataset layout like:
 
-    ```
-    webdataset/
-    └── data/
-        ├── train/
-        │   ├── train-00000.tar
-        │   ├── train-00001.tar
-        │   └── ...
-        └── val/
-            └── val-00000.tar
-    └── manifests/
-        ├── split_stats.json
-        ├── train_species.csv
-        ├── val_species.csv
-        ├── train_ids.txt
-        └── val_ids.txt
-    ```
+```
+webdataset/
+└── data/
+    ├── train/
+    │   ├── train-00000.tar
+    │   ├── train-00001.tar
+    │   └── ...
+    └── val/
+        └── val-00000.tar
+└── manifests/
+    ├── split_stats.json
+    ├── train_species.csv
+    ├── val_species.csv
+    ├── train_ids.txt
+    └── val_ids.txt
+```
     
 ### Inside each shard
 
@@ -162,21 +162,22 @@ Each `.tar` contains examples keyed by `image_id` and grouped as:
 - Image bytes: `.jpg`, `.png`, `.webp`, etc.  
 - Caption: `.txt` → hybrid caption  
 - Metadata: `.json` with fields like:
-    ```json
-    {
-      "image_id": "...",
-      "split": "train" | "val",
-      "source_url": "...",
-      "width": 1024,
-      "height": 1024,
-      "ae_relevance": 98,
-      "ae_aesthetic": 98,
-      "species": "...",
-      "species_list": [...],
-      "tags": [...],
-      "phash": "..."  
-    }
-    ```
+
+```
+{
+    "image_id": "...",
+    "split": "train" | "val",
+    "source_url": "...",
+    "width": 1024,
+    "height": 1024,
+    "ae_relevance": 98,
+    "ae_aesthetic": 98,
+    "species": "...",
+    "species_list": [...],
+    "tags": [...],
+    "phash": "..."  
+}
+```
 The exact schema is what `dataloader.py` expects.
 
 ### Manifests
@@ -255,12 +256,12 @@ SageMaker support is split into:
 
 On your machine (with AWS credentials configured & training/configs/aws_sm.yaml set up): 
 
-    ```bash
-    cd PokeFA-SDXL-LoRA
-    pip install "sagemaker>=2.224.0" "boto3>=1.34.0" "awscli>=2.0.0"
+```bash
+cd PokeFA-SDXL-LoRA
+pip install "sagemaker>=2.224.0" "boto3>=1.34.0" "awscli>=2.0.0"
 
-    python aws/submit_sm_job.py 
-    ```
+python aws/submit_sm_job.py 
+```
 
 ---
 
@@ -379,27 +380,27 @@ Files: `aws/submit_sm_job.py`, `aws/sm_entry.py`
 
 By default, a run directory looks like:
 
-    ```
-    path/to/outputs/
-    ├── cfg.yaml                                   # merged/fully-resolved training config
-    ├── configs_src/                               # original source configs copied at launch
-    │   ├── dataset.yaml
-    │   ├── model.yaml
-    │   └── train.yaml
-    ├── checkpoints/
-    │   ├── step-XXXXXXX-unet-lora.safetensors     # periodic UNet LoRA checkpoint 
-    │   ├── ...                                    # more step-XXXXXXX-unet-lora.safetensors over time
-    │   ├── last-unet-lora.safetensors             # latest UNet LoRA 
-    │   ├── step-XXXXXXX-te1-peft/                 # TE1 PEFT adapter dir (base stage + TE LoRA only)
-    │   ├── step-XXXXXXX-te2-peft/                 # TE2 PEFT adapter dir (base stage + TE LoRA only)
-    │   ├── ...                                    # more step-XXXXXXX-te{1,2}-peft/ over time
-    │   ├── last-te1-peft/                         # latest TE1 PEFT directory
-    │   ├── last-te2-peft/                         # latest TE2 PEFT directory
-    │   ├── state.pt                               # full training state (optimizer, scheduler, RNG, cfg)
-    │   └── state_meta.json                        # lightweight metadata: {"opt_step": ..."micro_step": ...}
-    ├── logs/                                      # per-rank logs                            
-    └── metrics.jsonl                              # log of train/val metrics 
-    ```
+```
+path/to/outputs/
+├── cfg.yaml                                   # merged/fully-resolved training config
+├── configs_src/                               # original source configs copied at launch
+│   ├── dataset.yaml
+│   ├── model.yaml
+│   └── train.yaml
+├── checkpoints/
+│   ├── step-XXXXXXX-unet-lora.safetensors     # periodic UNet LoRA checkpoint 
+│   ├── ...                                    # more step-XXXXXXX-unet-lora.safetensors over time
+│   ├── last-unet-lora.safetensors             # latest UNet LoRA 
+│   ├── step-XXXXXXX-te1-peft/                 # TE1 PEFT adapter dir (base stage + TE LoRA only)
+│   ├── step-XXXXXXX-te2-peft/                 # TE2 PEFT adapter dir (base stage + TE LoRA only)
+│   ├── ...                                    # more step-XXXXXXX-te{1,2}-peft/ over time
+│   ├── last-te1-peft/                         # latest TE1 PEFT directory
+│   ├── last-te2-peft/                         # latest TE2 PEFT directory
+│   ├── state.pt                               # full training state (optimizer, scheduler, RNG, cfg)
+│   └── state_meta.json                        # lightweight metadata: {"opt_step": ..."micro_step": ...}
+├── logs/                                      # per-rank logs                            
+└── metrics.jsonl                              # log of train/val metrics 
+```
 
 - UNet LoRA:  
   `last-unet-lora.safetensors` is the most convenient file to plug into diffusers at inference.
