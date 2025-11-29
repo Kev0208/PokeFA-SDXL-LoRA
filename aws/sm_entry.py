@@ -224,5 +224,7 @@ if __name__ == "__main__":
             "--hpo",
             str(hpo_yaml),
         ]
+        for ov in overrides:
+            cli += ["--override", ov]
 
     run(cli, env=env, cwd=str(repo_root))

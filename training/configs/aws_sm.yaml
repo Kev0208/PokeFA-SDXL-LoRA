@@ -7,6 +7,10 @@ sagemaker:
   role_arn: "arn:aws:iam::123456789012:role/YourSageMakerExecutionRole"
 
   # Instance settings: see SageMaker docs for available types.
+  # Minimum recommended config: ml.g5.12xlarge (4 × 24GB A10G)
+  # Smaller setups (single 24 GB GPU) are possible 
+  # but will require smaller effective batch sizes 
+  # and significantly longer training times.
   instance_type: "ml.g5.12xlarge"
   instance_count: 1
 
@@ -16,7 +20,7 @@ sagemaker:
 
   # S3 locations for code and outputs.
   # output_path: where final model artifacts & output.tar.gz are stored.
-  # code_location: where SageMaker uploads your source archive.
+  # code_location: where SageMaker uploads source archive.
   output_path: "s3://your-bucket/sdxl-lora/output"
   code_location: "s3://your-bucket/sdxl-lora/code"
 

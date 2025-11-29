@@ -1,14 +1,14 @@
 train:
-  # Total number of optimizer steps (updates). Does NOT count micro-steps from gradient accumulation.
+  # Total number of optimizer steps. Does NOT count micro-steps from gradient accumulation.
   total_steps: 10000
 
   # Number of warmup steps for the learning rate schedule.
   # Set to a small fraction of total_steps (e.g. 0.5–5%). Can be 0 to disable warmup.
   warmup_steps: 200
 
-  # Micro-batch size per GPU before gradient accumulation.
-  # Effective batch size ≈ micro_batch * grad_accum * num_gpus.
-  effective_bsz_micro: 1
+  # Gradient accumulation steps per GPU.
+  # Effective global batch size ≈ micro_batch * grad_accum * num_gpus.
+  effective_bsz_micro: 2
 
   # How often (in optimizer steps) to log training metrics to metrics.jsonl.
   log_every: 20
@@ -50,4 +50,4 @@ optim:
 lora:
   # Base learning rate for UNet LoRA parameters.
   # If text encoder LoRA is enabled, its LR is lora.lr * text_encoder_lora.lr_scale. 
-  lr: 1.0e-4
+  lr: 0.0003569095943771273

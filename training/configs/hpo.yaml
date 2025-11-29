@@ -3,7 +3,7 @@ hpo:
   n_trials: 20
 
   # Total training steps per trial (optimizer updates, not micro-steps).
-  # Typical range: 300–2000 depending on dataset/compute.
+  # Typical range: 300–2000 depending on compute.
   total_steps: 500
 
   # Random seeds used for evaluation sampling (each prompt × each seed).
@@ -12,9 +12,9 @@ hpo:
 
   # Which model stage for tuning
   # Options:
-  #   - "base": LoRA on the main diffusion UNet (+ optional text-encoder LoRA rank search).
-  #   - "refiner": LoRA on a second/refiner UNet (UNet LoRA only).
-  # Model.yaml should define a compatible "stage" as well.
+  #   - "base": hpo for base.
+  #   - "refiner": hpo for refiner.
+  # model.yaml should define a compatible "stage" as well.
   stage: "base"
 
   # Whether to search text-encoder LoRA rank when stage == "base".
@@ -28,8 +28,7 @@ hpo:
     steps: 30
 
     # Classifier-free guidance scale used during evaluation.
-    # Typical range for text-to-image: ~3.0–12.0.
-    cfg: 6.5
+    cfg: 7
 
     # Evaluation image height in pixels.
     height: 1024
@@ -39,7 +38,7 @@ hpo:
 
     # Negative prompt applied to every evaluation image.
     # Used to discourage unwanted artifacts; set to an empty string to disable.
-    negative_prompt: "text, watermark, logo, signature, grain, canvas texture, artifacts, blurry"
+    negative_prompt: "text, watermark, logo, signature, canvas texture, artifacts, blurry"
 
     # Dtype used for the evaluation pipeline ("bf16" or "fp16").
     pipe_dtype: "bf16"
@@ -58,4 +57,4 @@ hpo:
     head_path: "/path/to/LAION-aesthetic-predictor-V2/sac+logos+ava1-l14-linearMSE.pth"
 
   # Random seed for the HPO sampler itself (Optuna).
-  seed: 42
+  seed: 68

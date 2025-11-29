@@ -141,6 +141,61 @@ def _broadcast_obj(obj: Dict[str, Any]) -> Dict[str, Any]:
     return json.loads(buf[0]) if buf[0] else {}
 
 
+def _apply_env_overrides(
+    ds_t: Dict[str, Any],
+    md_t: Dict[str, Any],
+    tr_t: Dict[str, Any],
+    overrides: List[str] | None,
+) -> None:
+    for kv in overrides or []:
+        if "=" not in kv:
+            continue
+        key, val = kv.split("=", 1)
+        try:
+            v = json.loads(val)
+        except Exception:
+            v = val
+        parts = key.split(".")
+        if not parts:
+            continue
+        head, rest = parts[0], parts[1:]
+
+        if head == "dataset":
+            root = ds_t.setdefault("dataset", {})
+            target = ds_t
+            target_key = "dataset"
+        elif head in ("model", "lora", "text_encoder_lora"):
+            if head == "model":
+                root = md_t.setdefault("model", {})
+                target_key = "model"
+            elif head == "lora":
+                root = md_t.setdefault("lora", {})
+                target_key = "lora"
+            else:
+                root = md_t.setdefault("text_encoder_lora", {})
+                target_key = "text_encoder_lora"
+            target = md_t
+        elif head in ("train", "optim"):
+            if head == "train":
+                root = tr_t.setdefault("train", {})
+                target_key = "train"
+            else:
+                root = tr_t.setdefault("optim", {})
+                target_key = "optim"
+            target = tr_t
+        else:
+            continue
+
+        if not rest:
+            target[target_key] = v
+            continue
+
+        cursor = root
+        for p in rest[:-1]:
+            cursor = cursor.setdefault(p, {})
+        cursor[rest[-1]] = v
+
+
 @dataclass
 class EvalCfg:
     base_path: str
@@ -512,6 +567,7 @@ def run_study(args):
         md_t = _read_yaml(args.model)
         tr_t = _read_yaml(args.train)
         hp_t = _read_yaml(args.hpo)
+        _apply_env_overrides(ds_t, md_t, tr_t, getattr(args, "override", []))
     else:
         ds_t = md_t = tr_t = hp_t = None
     ds_t = _broadcast_obj(ds_t or {})

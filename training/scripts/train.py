@@ -253,7 +253,7 @@ def main():
     ap = argparse.ArgumentParser(description="PokéFA – launch SDXL LoRA training")
     ap.add_argument("--dataset", required=True, help="Path to training/configs/dataset.yaml")
     ap.add_argument("--model", required=True, help="Path to training/configs/model.yaml")
-    ap.add_argument("--train", required=True, help="Path to training/configs/train_*.yaml")
+    ap.add_argument("--train", required=True, help="Path to training/configs/train.yaml")
     ap.add_argument(
         "--override",
         action="append",
@@ -261,7 +261,6 @@ def main():
         help=(
             "Dot overrides, e.g. "
             "--override train.total_steps=2000 "
-            "--override wandb.enable=false"
         ),
     )
     ap.add_argument(

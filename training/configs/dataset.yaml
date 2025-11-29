@@ -16,7 +16,7 @@ dataset:
     # Larger → better mixing across shards, but higher CPU/RAM usage.
     shuffle_samples: 8192
 
-    # If true → ResampledShards (infinite stream, shard sampling with replacement).
+    # If true → ResampledShards (infinite stream, shard sampling with replacement, recommended).
     # If false → SimpleShardList (finite epoch over all shards).
     resample_shards: true
 
@@ -28,7 +28,8 @@ dataset:
     # 0 = single-process loading; >0 = parallel workers.
     num_workers: 4
 
-    # Pin CPU memory for faster host→GPU transfer (usually true for training).
+    # Pin CPU memory for faster host→GPU transfer.
+    # Recommended when batches are big or many workers (lots of data movement)
     pin_memory: true
 
     # Number of batches each worker prefetches ahead of time.

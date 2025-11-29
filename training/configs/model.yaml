@@ -1,10 +1,13 @@
 model:
   # ===================== Common (base + refiner) =====================
 
-  # Path containing SDXL components:
+  # Path containing SDXL *base* components (shared by base + refiner):
   #   vae/, scheduler/, text_encoder/, text_encoder_2/, tokenizer/, tokenizer_2/
-  # e.g. a local SDXL base or refiner snapshot on disk.
-  base_path: "/path/to/sdxl-base-or-refiner-root"
+  # This should point to an SDXL **base** snapshot on disk.
+  # For refiner stage we reuse the VAE, scheduler and text_encoder_2 from here
+  # (the refiner does not use text_encoder), so we do not need a full
+  # SDXL refiner download – only the refiner UNet at `refiner_unet_path`.
+  base_path: "/path/to/sdxl-base"
 
   # Which stage to assemble.
   # Options: ["base", "refiner"]
@@ -38,7 +41,7 @@ model:
   # --------------------- Diffusion objective -------------------------
 
   # Training target type for the noise scheduler.
-  # Must match the underlying scheduler config.
+  # Should match /path/to/sdxl-base/scheduler/scheduler_config.json
   # Options: ["epsilon", "v_prediction"]
   prediction_type: "epsilon"
 
@@ -62,10 +65,14 @@ model:
   cond_dropout_prob: 0.10
 
 
-  # ===================== Base-only settings ==========================
+  # ===================== Base-only setting ==========================
 
   # Gamma for Min-SNR loss reweighting in base training.
-  # >0 enables Min-SNR; set to 0 or remove if you do not use Min-SNR.
+  # >0 enables Min-SNR; set to 0 or remove if not using Min-SNR.
+  # Min-SNR reweighting is only applied for the base stage; 
+  # It is automatically disabled for refiner. 
+  # The refiner already trains on a narrow low-noise band, 
+  # so extra SNR weighting tends to hurt final-detail polish rather than help.
   min_snr_gamma: 5.0
 
 
@@ -80,9 +87,9 @@ model:
   # Optional PEFT LoRA directory for TE2 from base training.
   # If non-empty: merged into TE2 and then all text encoders are frozen in refiner.
   # Leave "" to skip TE2 merging.
-  te2_peft_dir: ""
+  te2_peft_dir: "/path/to/te2_peft_dir"
 
-  # Timestep band for refiner training (used by your train loop, not assembly).
+  # Timestep band for refiner training.
   # [t_min, t_max] in scheduler timestep indices, typically a low-noise band near x0.
   refiner_timestep_band: [0, 200]
   
@@ -111,7 +118,6 @@ lora:
   adapter_name: "default"
 
   # UNet submodules to wrap with LoRA (attention projections).
-  # Default pattern for SDXL attention blocks.
   target_modules: ["to_q", "to_k", "to_v", "to_out.0"]
 
   # Internal/master dtype for LoRA weights and optimizer state.
