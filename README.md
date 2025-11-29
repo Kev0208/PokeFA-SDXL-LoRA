@@ -14,8 +14,8 @@ LoRA fine-tuning of Stable Diffusion XL (SDXL) base and refiner on a curated, ca
 - Dataset building pipeline (scraping → cleaning → scoring → WebDataset):  
   GitHub: https://github.com/Kev0208/PokeFA  
 
-- PokeFA SDXL LoRA checkpoints:
-  Hugging Face: {To be Updated}
+- PokeFA SDXL LoRA checkpoints:  
+  Hugging Face: https://huggingface.co/Kev0208/Pokemon-Fanart-SDXL-LoRA
 
 ---
 
